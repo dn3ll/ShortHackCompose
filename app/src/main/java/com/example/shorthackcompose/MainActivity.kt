@@ -666,7 +666,7 @@ fun AdminStatsScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Заголовок
+
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -684,7 +684,6 @@ fun AdminStatsScreen(onBack: () -> Unit) {
             )
         }
 
-        // Статистика в колонне
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -749,7 +748,6 @@ fun StatCard(stat: StatItem) {
                 )
             }
 
-            // Название
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1103,7 +1101,6 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
                 .background(Color.White)
                 .verticalScroll(rememberScrollState())
         ) {
-            // Кнопка назад
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -1129,7 +1126,6 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
                     Text("Загрузка...")
                 }
             } else if (event != null) {
-                // Фото события
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -1154,7 +1150,6 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Информация события
                 Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = event!!.title,
@@ -1195,7 +1190,6 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
-                    // Кнопки
                     Button(
                         onClick = { showQuiz = true },
                         modifier = Modifier
@@ -1286,7 +1280,6 @@ fun MentorChatScreen(onBack: () -> Unit) {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Заголовок с ментором
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1302,7 +1295,6 @@ fun MentorChatScreen(onBack: () -> Unit) {
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier.weight(1f)
                 ) {
-                    // Avatar ментора
                     Card(
                         modifier = Modifier.size(48.dp),
                         shape = RoundedCornerShape(12.dp)
@@ -1501,7 +1493,6 @@ fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
     var answered by remember { mutableStateOf(false) }
 
     if (currentQuestion >= questions.size) {
-        // Результаты
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -1555,7 +1546,6 @@ fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
                 .background(Color.White)
                 .padding(16.dp)
         ) {
-            // Прогресс
             LinearProgressIndicator(
                 progress = { (currentQuestion + 1) / questions.size.toFloat() },
                 modifier = Modifier
@@ -1585,7 +1575,6 @@ fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Варианты ответов
             question.options.forEachIndexed { index, option ->
                 Button(
                     onClick = {
@@ -1618,7 +1607,6 @@ fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Кнопка далее
             if (answered) {
                 if (selectedAnswer == question.correctAnswer) {
                     score++
@@ -1692,7 +1680,6 @@ fun FeedbackScreen(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Звёзды
             Row(
                 modifier = Modifier
                     .fillMaxWidth(),
@@ -1711,7 +1698,6 @@ fun FeedbackScreen(onBack: () -> Unit) {
 
             Spacer(modifier = Modifier.height(32.dp))
 
-            // Комментарий
             OutlinedTextField(
                 value = comment,
                 onValueChange = { comment = it },
@@ -1886,7 +1872,6 @@ fun ShopScreen() {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Верхняя панель с монетками (увеличена)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -1899,7 +1884,6 @@ fun ShopScreen() {
                 modifier = Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.SpaceBetween
             ) {
-                // Заголовок "МАГАЗИН"
                 Text(
                     modifier = Modifier.offset(y = 70.dp),
                     text = "МАГАЗИН",
@@ -1909,7 +1893,6 @@ fun ShopScreen() {
                     color = Color.Black
                 )
 
-                // Монетки справа внизу
                 Row(
                     modifier = Modifier
                         .align(Alignment.End)
@@ -1940,7 +1923,6 @@ fun ShopScreen() {
 
         Spacer(modifier = Modifier.height(24.dp))
 
-        // Сетка товаров
         LazyVerticalGrid(
             columns = GridCells.Fixed(2),
             modifier = Modifier
@@ -1991,7 +1973,6 @@ fun ShopItemCard(
         Column(
             modifier = Modifier.fillMaxWidth()
         ) {
-            // Изображение товара
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -2012,7 +1993,6 @@ fun ShopItemCard(
                     .fillMaxWidth()
                     .padding(12.dp)
             ) {
-                // Название
                 Text(
                     text = item.name,
                     style = MaterialTheme.typography.bodyLarge.copy(
@@ -2024,11 +2004,9 @@ fun ShopItemCard(
 
                 Spacer(modifier = Modifier.height(12.dp))
 
-                // Цена и кнопка (развёрнуто по вертикали)
                 Column(
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    // Цена
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         modifier = Modifier.padding(bottom = 8.dp)
@@ -2048,7 +2026,6 @@ fun ShopItemCard(
                         )
                     }
 
-                    // Кнопка купить (на полную ширину)
                     Button(
                         onClick = { onBuy(item.price) },
                         modifier = Modifier
@@ -2090,7 +2067,6 @@ fun ProfileScreen() {
             .fillMaxSize()
             .background(Color.White)
     ) {
-        // Верхняя панель (X5 Green)
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -2098,14 +2074,12 @@ fun ProfileScreen() {
                 .background(color = X5TechGreen)
         )
 
-        // Контент (основная часть)
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(horizontal = 16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Avatar (перекрывает верхнюю панель)
             Card(
                 modifier = Modifier
                     .size(120.dp)
@@ -2172,7 +2146,6 @@ fun ProfileScreen() {
                         .fillMaxWidth()
                         .padding(16.dp)
                 ) {
-                    // Образование
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top
@@ -2199,7 +2172,6 @@ fun ProfileScreen() {
                     Divider(color = Color.LightGray, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // Возраст
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.Top
@@ -2226,7 +2198,6 @@ fun ProfileScreen() {
                     Divider(color = Color.LightGray, thickness = 1.dp)
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // О себе
                     Column(modifier = Modifier.fillMaxWidth()) {
                         Text(
                             text = "О СЕБЕ",
@@ -2247,7 +2218,6 @@ fun ProfileScreen() {
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Кнопка выхода
             Button(
                 onClick = { /* TODO: реализовать выход */ },
                 modifier = Modifier

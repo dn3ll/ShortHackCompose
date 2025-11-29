@@ -35,7 +35,6 @@ class BarcodeAnalyzer(
                 }
             }
             .addOnFailureListener {
-                // Обработка ошибок
             }
             .addOnCompleteListener {
                 imageProxy.close()
