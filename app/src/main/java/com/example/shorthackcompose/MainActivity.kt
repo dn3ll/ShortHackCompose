@@ -92,10 +92,14 @@ import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -230,202 +234,227 @@ fun LoginScreen(navController: NavHostController) {
     var passwordVisible by remember { mutableStateOf(false) }
     var isLoading by remember { mutableStateOf(false) }
     var errorMessage by remember { mutableStateOf("") }
+    var showAdminPanel by remember { mutableStateOf(false) }
 
-    LaunchedEffect(isLoading) {
-        if (isLoading && email.isNotEmpty() && password.isNotEmpty()) {
-            try {
-                val response = RetrofitClient.apiService.login(
-                    LoginRequest(email, password)
-                )
-                TokenManager.saveToken(response.id)
-                navController.navigate("profile") {
-                    popUpTo("login") { inclusive = true }
+    if (showAdminPanel) {
+        AdminPanelScreen(onBack = { showAdminPanel = false })
+    } else {
+        LaunchedEffect(isLoading) {
+            if (isLoading && email.isNotEmpty() && password.isNotEmpty()) {
+                try {
+                    val response = RetrofitClient.apiService.login(
+                        LoginRequest(email, password)
+                    )
+                    TokenManager.saveToken(response.id)
+                    navController.navigate("profile") {
+                        popUpTo("login") { inclusive = true }
+                    }
+                } catch (e: Exception) {
+                    errorMessage = "Ошибка: ${e.message}"
+                    isLoading = false
                 }
-            } catch (e: Exception) {
-                errorMessage = "Ошибка: ${e.message}"
-                isLoading = false
             }
         }
-    }
 
-    Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize()) {
 
-        Column(modifier = Modifier.fillMaxSize()) {
-            Box(
-                modifier = Modifier
-                    .height(400.dp)
-                    .fillMaxWidth()
-                    .background(color = X5TechGreen)
-            )
-            Box(
+            Column(modifier = Modifier.fillMaxSize()) {
+                Box(
+                    modifier = Modifier
+                        .height(400.dp)
+                        .fillMaxWidth()
+                        .background(color = X5TechGreen)
+                )
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(color = BGGray)
+                )
+            }
+
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .background(color = BGGray)
-            )
-        }
-
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(top = 48.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Image(
-                painter = painterResource(id = R.drawable.x5logo),
-                contentDescription = "X5 Logo",
-                modifier = Modifier.size(72.dp)
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            Text(
-                text = "Создай свой аккаунт",
-                style = MaterialTheme.typography.headlineMedium.copy(
-                    fontWeight = FontWeight.SemiBold
-                ),
-                color = Color.White
-            )
-
-            Spacer(modifier = Modifier.height(4.dp))
-
-            Text(
-                text = "Введи свой email и пароль",
-                style = MaterialTheme.typography.bodyLarge.copy(
-                    fontWeight = FontWeight.Medium
-                ),
-                color = Color.White.copy(alpha = 0.9f)
-            )
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
+                    .padding(top = 48.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Column(
+                Image(
+                    painter = painterResource(id = R.drawable.x5logo),
+                    contentDescription = "X5 Logo",
+                    modifier = Modifier.size(72.dp)
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Text(
+                    text = "Создай свой аккаунт",
+                    style = MaterialTheme.typography.headlineMedium.copy(
+                        fontWeight = FontWeight.SemiBold
+                    ),
+                    color = Color.White
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = "Введи свой email и пароль",
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Medium
+                    ),
+                    color = Color.White.copy(alpha = 0.9f)
+                )
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .padding(horizontal = 16.dp),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = CardDefaults.cardElevation(8.dp)
                 ) {
-                    OutlinedTextField(
-                        value = email,
-                        onValueChange = { email = it },
-                        label = { Text("Email") },
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        enabled = !isLoading
-                    )
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    OutlinedTextField(
-                        value = password,
-                        onValueChange = { password = it },
-                        label = { Text("Пароль") },
-                        visualTransformation = if (passwordVisible)
-                            VisualTransformation.None
-                        else
-                            PasswordVisualTransformation(),
-                        keyboardOptions = KeyboardOptions(
-                            keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done
-                        ),
-                        modifier = Modifier.fillMaxWidth(),
-                        singleLine = true,
-                        enabled = !isLoading,
-                        trailingIcon = {
-                            val icon =
-                                if (passwordVisible) Icons.Default.VisibilityOff
-                                else Icons.Default.Visibility
-                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                                Icon(icon, contentDescription = null)
-                            }
-                        }
-                    )
-
-                    Spacer(modifier = Modifier.height(8.dp))
-
-                    if (errorMessage.isNotEmpty()) {
-                        Text(
-                            text = errorMessage,
-                            color = Color.Red,
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        Spacer(modifier = Modifier.height(8.dp))
-                    }
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.weight(1f)
-                        ) {
-                            Checkbox(
-                                checked = rememberMe,
-                                onCheckedChange = { rememberMe = it },
-                                enabled = !isLoading
-                            )
-                            Text(
-                                text = "Запомнить меня",
-                                style = MaterialTheme.typography.bodyMedium
-                            )
-                        }
-
-                        Text(
-                            text = "Забыли пароль?",
-                            color = Color(0xFF2F80ED),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable { /* TODO */ }
-                        )
-                    }
-
-                    Spacer(modifier = Modifier.height(16.dp))
-
-                    Button(
-                        onClick = {
-                            if (email.isNotEmpty() && password.isNotEmpty()) {
-                                errorMessage = ""
-                                isLoading = true
-                            } else {
-                                errorMessage = "Заполните все поля"
-                            }
-                        },
+                    Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = !isLoading
+                            .padding(16.dp)
                     ) {
-                        Text(if (isLoading) "Загрузка..." else "Войти")
-                    }
-
-                    Spacer(modifier = Modifier.height(12.dp))
-
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = "Нет аккаунта? ",
-                            style = MaterialTheme.typography.bodyMedium
+                        OutlinedTextField(
+                            value = email,
+                            onValueChange = { email = it },
+                            label = { Text("Email") },
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Email,
+                                imeAction = ImeAction.Next
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            enabled = !isLoading
                         )
-                        Text(
-                            text = "Зарегистрироваться",
-                            color = Color(0xFF2F80ED),
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.clickable {
-                                navController.navigate("register")
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        OutlinedTextField(
+                            value = password,
+                            onValueChange = { password = it },
+                            label = { Text("Пароль") },
+                            visualTransformation = if (passwordVisible)
+                                VisualTransformation.None
+                            else
+                                PasswordVisualTransformation(),
+                            keyboardOptions = KeyboardOptions(
+                                keyboardType = KeyboardType.Password,
+                                imeAction = ImeAction.Done
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            enabled = !isLoading,
+                            trailingIcon = {
+                                val icon =
+                                    if (passwordVisible) Icons.Default.VisibilityOff
+                                    else Icons.Default.Visibility
+                                IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                    Icon(icon, contentDescription = null)
+                                }
                             }
                         )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        if (errorMessage.isNotEmpty()) {
+                            Text(
+                                text = errorMessage,
+                                color = Color.Red,
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Checkbox(
+                                    checked = rememberMe,
+                                    onCheckedChange = { rememberMe = it },
+                                    enabled = !isLoading
+                                )
+                                Text(
+                                    text = "Запомнить меня",
+                                    style = MaterialTheme.typography.bodyMedium
+                                )
+                            }
+
+                            Text(
+                                text = "Забыли пароль?",
+                                color = Color(0xFF2F80ED),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.clickable { /* TODO */ }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(16.dp))
+
+                        Button(
+                            onClick = {
+                                if (email.isNotEmpty() && password.isNotEmpty()) {
+                                    errorMessage = ""
+                                    isLoading = true
+                                } else {
+                                    errorMessage = "Заполните все поля"
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(48.dp),
+                            shape = RoundedCornerShape(12.dp),
+                            enabled = !isLoading
+                        ) {
+                            Text(if (isLoading) "Загрузка..." else "Войти")
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.Center
+                        ) {
+                            Text(
+                                text = "Нет аккаунта? ",
+                                style = MaterialTheme.typography.bodyMedium
+                            )
+                            Text(
+                                text = "Зарегистрироваться",
+                                color = Color(0xFF2F80ED),
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.clickable {
+                                    navController.navigate("register")
+                                }
+                            )
+                        }
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        Divider(
+                            modifier = Modifier.fillMaxWidth(),
+                            color = Color.LightGray
+                        )
+
+                        Spacer(modifier = Modifier.height(12.dp))
+
+                        TextButton(
+                            onClick = { showAdminPanel = true },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(
+                                "🔐 Админ панель",
+                                color = Color(0xFF9C27B0),
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
                     }
                 }
             }
@@ -434,6 +463,306 @@ fun LoginScreen(navController: NavHostController) {
 }
 
 
+@Composable
+fun AdminPanelScreen(onBack: () -> Unit) {
+    var currentTab by remember { mutableStateOf("menu") }
+
+    when (currentTab) {
+        "menu" -> AdminMenuScreen(onBack = onBack) { tab ->
+            currentTab = tab
+        }
+        "stands" -> AdminStandsScreen(onBack = { currentTab = "menu" })
+        "stats" -> AdminStatsScreen(onBack = { currentTab = "menu" })
+    }
+}
+
+@Composable
+fun AdminMenuScreen(onBack: () -> Unit, onTabSelect: (String) -> Unit) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "🔐 Админ Панель",
+            style = MaterialTheme.typography.headlineMedium.copy(
+                fontWeight = FontWeight.Bold
+            ),
+            color = Color(0xFF9C27B0)
+        )
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { onTabSelect("stands") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = X5TechGreen
+            )
+        ) {
+            Text(
+                "🏢 Добавить стенд",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        Button(
+            onClick = { onTabSelect("stats") },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(56.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color(0xFFFF9800)
+            )
+        ) {
+            Text(
+                "📊 Статистика",
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+
+        Spacer(modifier = Modifier.height(32.dp))
+
+        Button(
+            onClick = { onBack() },
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(48.dp),
+            shape = RoundedCornerShape(12.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Color.LightGray
+            )
+        ) {
+            Text("Назад", color = Color.Black)
+        }
+    }
+}
+
+@Composable
+fun AdminStandsScreen(onBack: () -> Unit) {
+    var standName by remember { mutableStateOf("") }
+    var standLocation by remember { mutableStateOf("") }
+    var submitted by remember { mutableStateOf(false) }
+
+    if (submitted) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "✅ Стенд добавлен!",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Вернуться")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "🏢 Добавить стенд",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            OutlinedTextField(
+                value = standName,
+                onValueChange = { standName = it },
+                label = { Text("Название стенда") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            OutlinedTextField(
+                value = standLocation,
+                onValueChange = { standLocation = it },
+                label = { Text("Расположение") },
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { submitted = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                enabled = standName.isNotEmpty() && standLocation.isNotEmpty()
+            ) {
+                Text("Добавить")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.LightGray
+                )
+            ) {
+                Text("Отмена", color = Color.Black)
+            }
+        }
+    }
+}
+
+@Composable
+fun AdminStatsScreen(onBack: () -> Unit) {
+    val stats = listOf(
+        StatItem("Посещения", R.drawable.stat1),
+        StatItem("Конверсия", R.drawable.stat2),
+        StatItem("Активность", R.drawable.stat3),
+        StatItem("Рейтинг", R.drawable.stat4)
+    )
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        // Заголовок
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(80.dp)
+                .background(color = X5TechGreen)
+                .padding(16.dp),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Text(
+                text = "📊 Статистика",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                ),
+                color = Color.White
+            )
+        }
+
+        // Статистика в колонне
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
+        ) {
+            items(stats.size) { index ->
+                StatCard(stat = stats[index])
+            }
+
+            item {
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { onBack() },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.LightGray
+                    )
+                ) {
+                    Text("Назад", color = Color.Black)
+                }
+            }
+        }
+    }
+}
+
+data class StatItem(
+    val title: String,
+    val imageId: Int
+)
+
+@Composable
+fun StatCard(stat: StatItem) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(180.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(4.dp)
+    ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            // Фото
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .weight(1f)
+                    .background(Color.Black),
+                contentAlignment = Alignment.Center
+            ) {
+                Image(
+                    painter = painterResource(id = stat.imageId),
+                    contentDescription = stat.title,
+                    modifier = Modifier.fillMaxSize(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            // Название
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp)
+            ) {
+                Text(
+                    text = stat.title,
+                    style = MaterialTheme.typography.bodyLarge.copy(
+                        fontWeight = FontWeight.Bold
+                    )
+                )
+            }
+        }
+    }
+}
 
 @Composable
 fun RegisterScreen(navController: NavHostController) {
@@ -699,16 +1028,25 @@ fun handleQrScan(rawValue: String, navController: NavHostController) {
     }
 }
 
+data class Quiz(
+    val question: String,
+    val options: List<String>,
+    val correctAnswer: Int
+)
+
 @Composable
 fun EventDetailScreen(navController: NavHostController, eventId: String) {
     var event by remember { mutableStateOf<EventResponse?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var showQuiz by remember { mutableStateOf(false) }
+    var showFeedback by remember { mutableStateOf(false) }
+    var showInternship by remember { mutableStateOf(false) }
+    var quizScore by remember { mutableStateOf(0) }
 
     LaunchedEffect(eventId) {
         try {
             event = RetrofitClient.apiService.getEvent(eventId)
         } catch (e: Exception) {
-            // Fallback на заглушки
             event = when (eventId) {
                 "EVENT001" -> EventResponse(
                     "1",
@@ -744,47 +1082,75 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
         }
     }
 
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { navController.popBackStack() },
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Назад",
-                modifier = Modifier.size(24.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text("Назад", style = MaterialTheme.typography.bodyLarge)
+    if (showQuiz) {
+        QuizScreen(eventId = eventId, onBack = { showQuiz = false }) { score ->
+            quizScore = score
+            showQuiz = false
         }
-
-        Spacer(modifier = Modifier.height(24.dp))
-
-        if (isLoading) {
-            Box(
+    } else if (showFeedback) {
+        FeedbackScreen(onBack = { showFeedback = false })
+    } else if (showInternship) {
+        InternshipScreen(onBack = { showInternship = false })
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .verticalScroll(rememberScrollState())
+        ) {
+            // Кнопка назад
+            Row(
                 modifier = Modifier
-                    .fillMaxSize(),
-                contentAlignment = Alignment.Center
+                    .fillMaxWidth()
+                    .clickable { navController.popBackStack() }
+                    .padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("Загрузка...")
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Назад",
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text("Назад", style = MaterialTheme.typography.bodyLarge)
             }
-        } else if (event != null) {
-            Card(
-                modifier = Modifier.fillMaxWidth(),
-                shape = RoundedCornerShape(16.dp),
-                elevation = CardDefaults.cardElevation(8.dp)
-            ) {
-                Column(
+
+            if (isLoading) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("Загрузка...")
+                }
+            } else if (event != null) {
+                // Фото события
+                Box(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(16.dp)
+                        .height(200.dp)
+                        .background(Color.Black),
+                    contentAlignment = Alignment.Center
                 ) {
+                    Image(
+                        painter = painterResource(
+                            id = when (event!!.id) {
+                                "1" -> R.drawable.event1
+                                "2" -> R.drawable.event2
+                                "3" -> R.drawable.event3
+                                else -> R.drawable.event1
+                            }
+                        ),
+                        contentDescription = event!!.title,
+                        modifier = Modifier.fillMaxSize(),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Информация события
+                Column(modifier = Modifier.padding(16.dp)) {
                     Text(
                         text = event!!.title,
                         style = MaterialTheme.typography.headlineMedium.copy(
@@ -824,16 +1190,462 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
 
                     Spacer(modifier = Modifier.height(24.dp))
 
+                    // Кнопки
+                    Button(
+                        onClick = { showQuiz = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = X5TechGreen
+                        )
+                    ) {
+                        Text("📝 Пройти квиз")
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = { showFeedback = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFFFF9800)
+                        )
+                    ) {
+                        Text("⭐ Оставить фидбек")
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
+                        onClick = { showInternship = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF9C27B0)
+                        )
+                    ) {
+                        Text("💼 Стажировка")
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
                     Button(
                         onClick = { navController.navigate("scanner") },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color.LightGray
+                        )
                     ) {
-                        Text("Сканировать другой код")
+                        Text("Сканировать другой код", color = Color.Black)
                     }
                 }
+            }
+        }
+    }
+}
+
+@Composable
+fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
+    val quizzes = mapOf(
+        "EVENT001" to listOf(
+            Quiz(
+                "Какой год основания компании X5?",
+                listOf("2000", "2010", "2020", "2015"),
+                0
+            ),
+            Quiz(
+                "Сколько стран присутствует X5?",
+                listOf("2", "3", "5", "4"),
+                2
+            )
+        ),
+        "EVENT002" to listOf(
+            Quiz(
+                "Какой вид спорта НЕ будет на мероприятии?",
+                listOf("Баскетбол", "Футбол", "Волейбол", "Теннис"),
+                3
+            ),
+            Quiz(
+                "В какое время начинается спортивный день?",
+                listOf("9:00", "10:00", "14:00", "15:00"),
+                1
+            )
+        ),
+        "EVENT003" to listOf(
+            Quiz(
+                "Что будет на новогоднем празднике?",
+                listOf("Конференция", "Развлечения и подарки", "Спорт", "Тренинг"),
+                1
+            ),
+            Quiz(
+                "Дата праздника?",
+                listOf("25 декабря", "1 января", "31 декабря", "30 декабря"),
+                2
+            )
+        )
+    )
+
+    val questions = quizzes[eventId] ?: emptyList()
+    var currentQuestion by remember { mutableStateOf(0) }
+    var score by remember { mutableStateOf(0) }
+    var selectedAnswer by remember { mutableStateOf<Int?>(null) }
+    var answered by remember { mutableStateOf(false) }
+
+    if (currentQuestion >= questions.size) {
+        // Результаты
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Тест завершён!",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Ваш результат:",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = "2 / 3",
+                style = MaterialTheme.typography.displaySmall.copy(
+                    fontWeight = FontWeight.Bold,
+                    color = X5TechGreen
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { onComplete(score) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Вернуться")
+            }
+        }
+    } else {
+        val question = questions[currentQuestion]
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp)
+        ) {
+            // Прогресс
+            LinearProgressIndicator(
+                progress = { (currentQuestion + 1) / questions.size.toFloat() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(4.dp),
+                color = X5TechGreen
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Вопрос
+            Text(
+                text = "Вопрос ${currentQuestion + 1} / ${questions.size}",
+                style = MaterialTheme.typography.labelSmall.copy(
+                    color = Color.Gray
+                )
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            Text(
+                text = question.question,
+                style = MaterialTheme.typography.headlineSmall.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Варианты ответов
+            question.options.forEachIndexed { index, option ->
+                Button(
+                    onClick = {
+                        selectedAnswer = index
+                        answered = true
+                    },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp)
+                        .padding(vertical = 4.dp),
+                    shape = RoundedCornerShape(12.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = when {
+                            !answered -> Color.LightGray
+                            index == selectedAnswer && index == question.correctAnswer -> Color.Green
+                            index == selectedAnswer -> Color.Red
+                            index == question.correctAnswer -> Color.Green
+                            else -> Color.LightGray
+                        }
+                    ),
+                    enabled = !answered
+                ) {
+                    Text(
+                        text = option,
+                        color = Color.Black,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Кнопка далее
+            if (answered) {
+                if (selectedAnswer == question.correctAnswer) {
+                    score++
+                }
+
+                Button(
+                    onClick = { currentQuestion++; selectedAnswer = null; answered = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Text("Далее")
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun FeedbackScreen(onBack: () -> Unit) {
+    var rating by remember { mutableStateOf(0) }
+    var comment by remember { mutableStateOf("") }
+    var submitted by remember { mutableStateOf(false) }
+
+    if (submitted) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Спасибо за фидбек! ⭐",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Вернуться")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Text(
+                text = "Оцените событие",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Звёзды
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center
+            ) {
+                repeat(5) { index ->
+                    Text(
+                        text = if (index < rating) "⭐" else "☆",
+                        style = MaterialTheme.typography.displayMedium,
+                        modifier = Modifier
+                            .clickable { rating = index + 1 }
+                            .padding(8.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Комментарий
+            OutlinedTextField(
+                value = comment,
+                onValueChange = { comment = it },
+                label = { Text("Ваш комментарий") },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(120.dp),
+                maxLines = 4,
+                shape = RoundedCornerShape(12.dp)
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { submitted = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                enabled = rating > 0
+            ) {
+                Text("Отправить")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.LightGray
+                )
+            ) {
+                Text("Отмена", color = Color.Black)
+            }
+        }
+    }
+}
+
+@Composable
+fun InternshipScreen(onBack: () -> Unit) {
+    var submitted by remember { mutableStateOf(false) }
+
+    if (submitted) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Спасибо за интерес! 💼",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Мы скоро свяжемся с вами",
+                style = MaterialTheme.typography.bodyLarge
+            )
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Text("Вернуться")
+            }
+        }
+    } else {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                text = "Заинтересованы в стажировке?",
+                style = MaterialTheme.typography.headlineMedium.copy(
+                    fontWeight = FontWeight.Bold
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Text(
+                text = "Оставьте заявку и мы обсудим детали",
+                style = MaterialTheme.typography.bodyLarge,
+                textAlign = TextAlign.Center
+            )
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            Button(
+                onClick = { submitted = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color(0xFF9C27B0)
+                )
+            ) {
+                Text("Подать заявку")
+            }
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Button(
+                onClick = { onBack() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.LightGray
+                )
+            ) {
+                Text("Отмена", color = Color.Black)
             }
         }
     }
