@@ -91,6 +91,7 @@ import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.view.PreviewView
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.grid.GridCells
@@ -100,6 +101,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
@@ -1041,6 +1043,7 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
     var showQuiz by remember { mutableStateOf(false) }
     var showFeedback by remember { mutableStateOf(false) }
     var showInternship by remember { mutableStateOf(false) }
+    var showMentorChat by remember { mutableStateOf(false) }
     var quizScore by remember { mutableStateOf(0) }
 
     LaunchedEffect(eventId) {
@@ -1091,6 +1094,8 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
         FeedbackScreen(onBack = { showFeedback = false })
     } else if (showInternship) {
         InternshipScreen(onBack = { showInternship = false })
+    } else if (showMentorChat) {
+        MentorChatScreen(onBack = { showMentorChat = false })
     } else {
         Column(
             modifier = Modifier
@@ -1222,6 +1227,21 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Button(
+                        onClick = { showMentorChat = true },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(48.dp),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF2196F3)
+                        )
+                    ) {
+                        Text("💬 Чат с ментором")
+                    }
+
+                    Spacer(modifier = Modifier.height(12.dp))
+
+                    Button(
                         onClick = { showInternship = true },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -1248,12 +1268,191 @@ fun EventDetailScreen(navController: NavHostController, eventId: String) {
                     ) {
                         Text("Сканировать другой код", color = Color.Black)
                     }
+
+                    Spacer(modifier = Modifier.height(16.dp))
                 }
             }
         }
     }
 }
 
+@Composable
+fun MentorChatScreen(onBack: () -> Unit) {
+    var messages by remember { mutableStateOf(listOf<ChatMessage>()) }
+    var messageText by remember { mutableStateOf("") }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+    ) {
+        // Заголовок с ментором
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(color = X5TechGreen)
+                .padding(16.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    // Avatar ментора
+                    Card(
+                        modifier = Modifier.size(48.dp),
+                        shape = RoundedCornerShape(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(Color.Black),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Image(
+                                painter = painterResource(id = R.drawable.avatarmentor),
+                                contentDescription = "Mentor Avatar",
+                                modifier = Modifier.fillMaxSize(),
+                                contentScale = ContentScale.Crop
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.width(12.dp))
+
+                    Column {
+                        Text(
+                            text = "Дмитрий Нагиев",
+                            style = MaterialTheme.typography.bodyLarge.copy(
+                                fontWeight = FontWeight.Bold
+                            ),
+                            color = Color.White
+                        )
+                        Text(
+                            text = "Ментор X5",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.White.copy(alpha = 0.8f)
+                        )
+                    }
+                }
+
+                IconButton(onClick = { onBack() }) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Назад",
+                        tint = Color.White
+                    )
+                }
+            }
+        }
+
+        // Сообщения
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxWidth()
+                .weight(1f)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            items(messages.size) { index ->
+                ChatBubble(message = messages[index])
+            }
+        }
+
+        // Поле ввода
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.Bottom
+        ) {
+            OutlinedTextField(
+                value = messageText,
+                onValueChange = { messageText = it },
+                placeholder = { Text("Напишите сообщение...") },
+                modifier = Modifier
+                    .weight(1f)
+                    .height(70.dp),
+                shape = RoundedCornerShape(24.dp),
+                singleLine = true,
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = X5TechGreen
+                )
+            )
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = {
+                    if (messageText.isNotEmpty()) {
+                        messages = messages + ChatMessage(
+                            text = messageText,
+                            isUser = true,
+                            timestamp = "сейчас"
+                        )
+                        messageText = ""
+                    }
+                },
+                modifier = Modifier
+                    .size(70.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = X5TechGreen
+                ),
+                contentPadding = PaddingValues(0.dp)
+            ) {
+                Text("📤", style = MaterialTheme.typography.headlineSmall)
+            }
+        }
+    }
+}
+
+data class ChatMessage(
+    val text: String,
+    val isUser: Boolean,
+    val timestamp: String
+)
+
+@Composable
+fun ChatBubble(message: ChatMessage) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 0.dp),
+        horizontalArrangement = if (message.isUser) Arrangement.End else Arrangement.Start
+    ) {
+        Card(
+            modifier = Modifier
+                .widthIn(max = 280.dp),
+            shape = RoundedCornerShape(16.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = if (message.isUser) X5TechGreen else Color(0xFFF0F0F0)
+            )
+        ) {
+            Column(
+                modifier = Modifier.padding(12.dp)
+            ) {
+                Text(
+                    text = message.text,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = if (message.isUser) Color.White else Color.Black
+                )
+
+                Spacer(modifier = Modifier.height(4.dp))
+
+                Text(
+                    text = message.timestamp,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = if (message.isUser) Color.White.copy(alpha = 0.7f) else Color.Gray
+                )
+            }
+        }
+    }
+}
 @Composable
 fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
     val quizzes = mapOf(
@@ -1328,7 +1527,7 @@ fun QuizScreen(eventId: String, onBack: () -> Unit, onComplete: (Int) -> Unit) {
             Spacer(modifier = Modifier.height(8.dp))
 
             Text(
-                text = "2 / 3",
+                text = "1 / 2",
                 style = MaterialTheme.typography.displaySmall.copy(
                     fontWeight = FontWeight.Bold,
                     color = X5TechGreen
